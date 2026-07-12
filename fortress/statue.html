@@ -1,0 +1,35 @@
+import React from 'react';
+
+type Severity = 'critical' | 'high' | 'medium' | 'low' | 'clean';
+type Tier = 'trial' | 'active' | 'enterprise' | 'churned';
+
+export function SeverityBadge({ severity }: { severity: Severity }) {
+  const classes: Record<Severity, string> = {
+    critical: 'threat-critical border text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wide',
+    high: 'threat-high border text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wide',
+    medium: 'threat-medium border text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wide',
+    low: 'threat-low border text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wide',
+    clean: 'text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wide border',
+  };
+  const cleanStyle = severity === 'clean' ? {
+    color: 'var(--alert-green)',
+    backgroundColor: 'rgba(245, 197, 24, 0.1)',
+    borderColor: 'rgba(245, 197, 24, 0.3)',
+  } : {};
+
+  return (
+    <span className={classes[severity]} style={cleanStyle}>
+      {severity}
+    </span>
+  );
+}
+
+export function TierBadge({ tier }: { tier: Tier }) {
+  const classes: Record<Tier, string> = {
+    trial: 'badge-tier-trial',
+    active: 'badge-tier-active',
+    enterprise: 'badge-tier-enterprise',
+    churned: 'badge-tier-churned',
+  };
+  return <span className={classes[tier]}>{tier.toUpperCase()}</span>;
+}

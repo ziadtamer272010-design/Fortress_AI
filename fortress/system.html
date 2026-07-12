@@ -1,0 +1,50 @@
+import React from 'react';
+import { CheckCircle, Cpu } from 'lucide-react';
+
+const modules = [
+  { id: 'mod-threat', name: 'Threat Scanner' },
+  { id: 'mod-classify', name: 'File Classifier' },
+  { id: 'mod-crm', name: 'Client Ledger' },
+  { id: 'mod-marketing', name: 'Marketing AI' },
+  { id: 'mod-chatbot', name: 'Fortress AI' },
+  { id: 'mod-api', name: 'Gemini API' },
+];
+
+export default function SystemStatusPanel() {
+  return (
+    <div className="card-fortress rounded-lg overflow-hidden h-full">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">System Status</h3>
+          <p className="text-xs text-muted-foreground font-mono mt-0.5">All modules</p>
+        </div>
+        <Cpu size={16} className="text-muted-foreground" />
+      </div>
+      <div className="p-4 space-y-2">
+        {modules?.map((m) => (
+          <div key={m?.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle size={13} className="text-alert-green flex-shrink-0" />
+              <span className="text-xs font-sans text-foreground">{m?.name}</span>
+            </div>
+            <span className="text-xs font-mono text-alert-green">ONLINE</span>
+          </div>
+        ))}
+      </div>
+      <div className="px-5 pb-4">
+        <div className="rounded border border-border p-3 bg-muted/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono text-muted-foreground">SYSTEM HEALTH</span>
+            <span className="text-xs font-mono text-alert-green">OPERATIONAL</span>
+          </div>
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: '100%', background: 'linear-gradient(90deg, var(--accent), var(--primary))' }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

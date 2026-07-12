@@ -1,0 +1,180 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+import { LayoutDashboard, Shield, Users, FolderSearch, BarChart3, MessageSquareText, ChevronLeft, ChevronRight, Activity, Settings, HelpCircle,  } from 'lucide-react';
+import Icon from '@/components/ui/AppIcon';
+
+
+interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  badge?: number;
+  group: string;
+}
+
+const navItems: NavItem[] = [
+  { id: 'nav-dashboard', label: 'Command Center', href: '/', icon: LayoutDashboard, group: 'core' },
+  { id: 'nav-threat', label: 'Threat Scanner', href: '/threat-scanner', icon: Shield, badge: 3, group: 'intelligence' },
+  { id: 'nav-clients', label: 'Clients Ledger', href: '/clients-master-ledger', icon: Users, group: 'intelligence' },
+  { id: 'nav-files', label: 'File Classifier', href: '/file-classifier', icon: FolderSearch, group: 'intelligence' },
+  { id: 'nav-marketing', label: 'Marketing Planner', href: '/marketing-planner', icon: BarChart3, group: 'tools' },
+  { id: 'nav-chatbot', label: 'Fortress AI', href: '/live-chatbot', icon: MessageSquareText, group: 'tools' },
+];
+
+const groupLabels: Record<string, string> = {
+  core: 'OVERVIEW',
+  intelligence: 'INTELLIGENCE',
+  tools: 'AI TOOLS',
+};
+
+export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+
+  const groups = ['core', 'intelligence', 'tools'];
+
+  return (
+    <aside
+      className="relative flex flex-col h-screen border-r border-border transition-all duration-300 ease-in-out flex-shrink-0"
+      style={{
+        width: collapsed ? '64px' : '240px',
+        background: 'linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%)',
+      }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-border overflow-hidden">
+        <div className="flex-shrink-0 w-8 h-8 rounded overflow-hidden">
+          <img
+            src="/assets/images/733443330_122102147091375462_561295641561036229_n-1783877927488.jpg"
+            alt="The Fortress Logo"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        {!collapsed && (
+          <div className="overflow-hidden">
+            <span className="font-sans font-700 text-sm neon-text leading-tight block whitespace-nowrap">
+              THE FORTRESS
+            </span>
+            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">AI COMMAND</span>
+          </div>
+        )}
+      </div>
+
+      {/* System Status */}
+      {!collapsed && (
+        <div className="mx-3 mt-3 px-3 py-2 rounded border border-border bg-muted/30">
+          <div className="flex items-center gap-2">
+            <div className="pulse-dot" />
+            <span className="text-xs font-mono text-alert-green">ALL SYSTEMS ONLINE</span>
+          </div>
+        </div>
+      )}
+      {collapsed && (
+        <div className="flex justify-center mt-3">
+          <div className="pulse-dot" />
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2">
+        {groups.map((group) => {
+          const groupItems = navItems.filter((item) => item.group === group);
+          return (
+            <div key={`group-${group}`} className="mb-4">
+              {!collapsed && (
+                <p className="text-xs font-mono tracking-widest text-muted-foreground px-3 mb-2 uppercase">
+                  {groupLabels[group]}
+                </p>
+              )}
+              {collapsed && <div className="border-t border-border mx-2 mb-2" />}
+              <ul className="space-y-0.5">
+                {groupItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={item.id}>
+                      <Link
+                        href={item.href}
+                        title={collapsed ? item.label : undefined}
+                        className={`
+                          flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium
+                          sidebar-item-hover transition-all duration-150 relative group
+                          ${isActive ? 'sidebar-item-active' : 'text-secondary-foreground'}
+                        `}
+                      >
+                        <Icon
+                          size={18}
+                          className={`flex-shrink-0 ${isActive ? 'text-primary' : ''}`}
+                        />
+                        {!collapsed && (
+                          <span className="flex-1 truncate">{item.label}</span>
+                        )}
+                        {!collapsed && item.badge && (
+                          <span className="text-xs font-mono px-1.5 py-0.5 rounded-full bg-alert-red/20 text-alert-red border border-alert-red/30">
+                            {item.badge}
+                          </span>
+                        )}
+                        {collapsed && item.badge && (
+                          <span className="absolute top-1 right-1 w-4 h-4 text-xs rounded-full bg-alert-red flex items-center justify-center text-white font-mono">
+                            {item.badge}
+                          </span>
+                        )}
+                        {/* Tooltip for collapsed */}
+                        {collapsed && (
+                          <div className="absolute left-full ml-2 px-2 py-1 rounded text-xs font-sans bg-card border border-border text-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+                            {item.label}
+                          </div>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Bottom section */}
+      <div className="border-t border-border p-2 space-y-0.5">
+        {[
+          { id: 'nav-activity', icon: Activity, label: 'Activity Log', href: '#' },
+          { id: 'nav-settings', icon: Settings, label: 'Settings', href: '#' },
+          { id: 'nav-help', icon: HelpCircle, label: 'Help & Docs', href: '#' },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              className="flex items-center gap-3 px-3 py-2 rounded text-sm text-muted-foreground sidebar-item-hover group relative"
+            >
+              <Icon size={16} className="flex-shrink-0" />
+              {!collapsed && <span className="truncate">{item.label}</span>}
+              {collapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 rounded text-xs font-sans bg-card border border-border text-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
+                  {item.label}
+                </div>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-20 w-6 h-6 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all duration-150 z-10"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+      </button>
+    </aside>
+  );
+}
