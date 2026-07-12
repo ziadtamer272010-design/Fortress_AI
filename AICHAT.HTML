@@ -1,0 +1,281 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageSquareText, Send, RotateCcw, Zap, User, Bot, Clock } from 'lucide-react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+const SYSTEM_PERSONA = `You are Aria, a senior enterprise sales consultant at The Fortress AI — a cybersecurity and AI intelligence firm. You are professional, knowledgeable, and direct. You help prospects understand The Fortress AI's services: Threat Scanner (email/phishing detection), File Classifier (document intelligence), Clients Master Ledger (CRM), and Marketing Planner (AI strategy). You qualify leads, answer technical questions, and guide prospects toward booking a demo. Keep responses concise (2-4 sentences max). Never break character.`;
+
+const quickReplies = [
+  'What services do you offer?',
+  'How does the Threat Scanner work?',
+  'What are your pricing plans?',
+  'Can I book a demo?',
+  'How is my data protected?',
+];
+
+const botResponses: Record<string, string> = {
+  default: "I'd be happy to help with that. Could you tell me a bit more about your organization's size and current security setup? That'll help me point you to the right solution.",
+  services: "The Fortress AI offers five core modules: Threat Scanner (AI-powered phishing & BEC detection), File Classifier (automated document intelligence), Clients Master Ledger (enterprise CRM), Marketing Planner (30-day AI strategy), and Live Chatbot (sales automation). Which area is most relevant to your needs?",
+  threat: "Our Threat Scanner uses multi-layer AI analysis to detect Business Email Compromise, phishing, credential harvesting, and social engineering attacks with 96%+ accuracy. It analyzes sender reputation, domain age, link destinations, and language patterns in real time. Most clients see a 70% reduction in successful phishing attempts within the first 30 days.",
+  pricing: "We offer three tiers: Starter ($299/mo — up to 5 users, core threat scanning), Professional ($799/mo — full suite, 25 users, API access), and Enterprise (custom pricing — unlimited users, dedicated support, SLA guarantees). Would you like me to walk you through which tier fits your team size?",
+  demo: "Absolutely — I can get you scheduled for a 30-minute live demo with one of our senior engineers. They'll walk you through a real threat detection scenario using your actual email domain. What's the best email to send the calendar invite to?",
+  security: "All data processed through The Fortress AI is encrypted in transit (TLS 1.3) and at rest (AES-256). We are SOC 2 Type II certified and GDPR compliant. Your documents and emails are never stored beyond the active session — zero data retention by default. Happy to share our full security whitepaper if needed.",
+};
+
+function getBotResponse(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes('service') || lower.includes('offer') || lower.includes('do you')) return botResponses.services;
+  if (lower.includes('threat') || lower.includes('phish') || lower.includes('scan')) return botResponses.threat;
+  if (lower.includes('price') || lower.includes('pricing') || lower.includes('cost') || lower.includes('plan')) return botResponses.pricing;
+  if (lower.includes('demo') || lower.includes('book') || lower.includes('schedule') || lower.includes('trial')) return botResponses.demo;
+  if (lower.includes('secur') || lower.includes('data') || lower.includes('privacy') || lower.includes('gdpr')) return botResponses.security;
+  return botResponses.default;
+}
+
+export default function LiveChatbotClient() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'msg-0',
+      role: 'assistant',
+      content: "Hello — I'm Aria, your dedicated enterprise consultant at The Fortress AI. I'm here to help you understand how our intelligence platform can protect and grow your business. What brings you here today?",
+      timestamp: new Date().toTimeString().slice(0, 5),
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [totalMessages, setTotalMessages] = useState(1);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const sendMessage = async (text?: string) => {
+    const content = (text || input).trim();
+    if (!content) return;
+
+    const userMsg: Message = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content,
+      timestamp: new Date().toTimeString().slice(0, 5),
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setIsTyping(true);
+    setTotalMessages(c => c + 1);
+
+    const delay = 800 + Math.random() * 1200;
+    await new Promise(r => setTimeout(r, delay));
+
+    const response = getBotResponse(content);
+    const botMsg: Message = {
+      id: `msg-${Date.now() + 1}`,
+      role: 'assistant',
+      content: response,
+      timestamp: new Date().toTimeString().slice(0, 5),
+    };
+
+    setMessages(prev => [...prev, botMsg]);
+    setIsTyping(false);
+    setTotalMessages(c => c + 1);
+  };
+
+  const handleReset = () => {
+    setMessages([{
+      id: 'msg-reset',
+      role: 'assistant',
+      content: "Hello — I'm Aria, your dedicated enterprise consultant at The Fortress AI. I'm here to help you understand how our intelligence platform can protect and grow your business. What brings you here today?",
+      timestamp: new Date().toTimeString().slice(0, 5),
+    }]);
+    setTotalMessages(1);
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="min-h-screen bg-background grid-bg flex flex-col">
+      {/* Header */}
+      <div className="border-b border-border px-6 lg:px-8 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: 'rgba(245, 197, 24, 0.1)', border: '1px solid rgba(245, 197, 24, 0.25)' }}>
+              <MessageSquareText size={18} style={{ color: 'var(--primary)' }} />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Fortress AI</h1>
+              <p className="text-xs text-muted-foreground font-mono mt-0.5">AI Sales Consultant — Aria v2.1</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border bg-muted/30">
+              <div className="pulse-dot" />
+              <span className="text-xs font-mono text-alert-green">ARIA ONLINE</span>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-mono text-muted-foreground">MESSAGES</p>
+              <p className="text-lg font-semibold font-mono tabular-nums text-foreground">{totalMessages}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden px-6 lg:px-8 xl:px-10 py-6 gap-6 max-w-screen-2xl w-full">
+        {/* Chat Window */}
+        <div className="flex-1 flex flex-col card-fortress rounded-xl overflow-hidden min-h-0">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, var(--accent), var(--primary))' }}>
+                <Bot size={14} className="text-black" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Aria</p>
+                <p className="text-xs text-muted-foreground font-mono">Enterprise Sales Consultant · The Fortress AI</p>
+              </div>
+            </div>
+            <button onClick={handleReset} className="btn-outline-fortress flex items-center gap-1.5 px-3 py-1.5 text-xs">
+              <RotateCcw size={12} /> New Chat
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  msg.role === 'assistant' ?'bg-gradient-to-br from-accent to-primary' :''
+                }`}
+                  style={msg.role === 'user' ? { background: 'rgba(245, 197, 24, 0.1)', border: '1px solid rgba(245, 197, 24, 0.25)' } : {}}>
+                  {msg.role === 'assistant'
+                    ? <Bot size={14} className="text-black" />
+                    : <User size={14} style={{ color: 'var(--primary)' }} />
+                  }
+                </div>
+                <div className={`max-w-[75%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                  <div className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === 'assistant' ?'bg-card border border-border text-foreground' :'text-black font-medium'
+                  }`}
+                    style={msg.role === 'user' ? { background: 'var(--primary)' } : {}}>
+                    {msg.content}
+                  </div>
+                  <div className="flex items-center gap-1 px-1">
+                    <Clock size={10} className="text-muted-foreground" />
+                    <span className="text-xs font-mono text-muted-foreground">{msg.timestamp}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex gap-3 items-start animate-fadeIn">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-accent to-primary">
+                  <Bot size={14} className="text-black" />
+                </div>
+                <div className="rounded-xl px-4 py-3 bg-card border border-border">
+                  <div className="flex gap-1 items-center h-4">
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-border p-4 flex-shrink-0">
+            <div className="flex gap-3">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Type your message..."
+                className="input-fortress flex-1 px-4 py-2.5 text-sm"
+                disabled={isTyping}
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={isTyping || !input.trim()}
+                className="btn-primary-fortress flex items-center gap-2 px-4 py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              >
+                <Send size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 xl:w-72 flex-shrink-0 space-y-4">
+          {/* Quick Replies */}
+          <div className="card-fortress rounded-xl overflow-hidden">
+            <div className="px-4 py-3.5 border-b border-border">
+              <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Quick Questions</h3>
+            </div>
+            <div className="p-3 space-y-2">
+              {quickReplies.map((reply, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(reply)}
+                  disabled={isTyping}
+                  className="w-full text-left text-xs px-3 py-2.5 rounded-lg transition-all duration-150 text-foreground disabled:opacity-50"
+                  style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}
+                  onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = 'var(--primary)'; (e.target as HTMLElement).style.color = 'var(--primary)'; }}
+                  onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = 'var(--border)'; (e.target as HTMLElement).style.color = 'var(--foreground)'; }}
+                >
+                  {reply}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Aria Profile */}
+          <div className="card-fortress rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, var(--accent), var(--primary))' }}>
+                <Bot size={18} className="text-black" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Aria</p>
+                <p className="text-xs text-muted-foreground font-mono">AI Sales Consultant</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[
+                { label: 'Response Time', value: '< 2 seconds' },
+                { label: 'Languages', value: 'EN, AR, FR' },
+                { label: 'Specialization', value: 'Enterprise B2B' },
+              ].map(item => (
+                <div key={item.label} className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground font-mono">{item.label}</span>
+                  <span className="text-xs font-medium text-foreground">{item.value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Zap size={12} style={{ color: 'var(--primary)' }} />
+                <span className="text-xs text-muted-foreground">Powered by The Fortress AI Engine</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
